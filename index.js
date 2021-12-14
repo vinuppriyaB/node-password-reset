@@ -17,14 +17,19 @@ import { genPassword,
 import { userRouter } from "./routes/login.js";
 // import { gmail } from "googleapis/build/src/apis/gmail";
 // import { gmail } from "googleapis/build/src/apis/gmail";
-
-
-
 dotenv.config();
-const CLIENT_ID="628736294675-4lb99fi5irie8duta6q6h1d5f762ubcp.apps.googleusercontent.com";
-const CLIENT_SECRET="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";
-const REDIRECT_URI="https://developers.google.com/oauthplayground";
-const REFRESH_TOKEN="1//04-PaGJciqykZCgYIARAAGAQSNwF-L9IrSg0qDdnl2hKRkmJ6kN4Wjg9vqP8AcO59hIP-iIoyF0n5jBtPJQs23IFmOU1jRAVqGAM";
+const app = express();
+const PORT = process.env.PORT || 8500;
+const MONGO_URL = process.env.MONGO_URL;
+// mongodb+srv://vinuppriya:<password>@cluster0.xu3bs.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+app.use(express.json());
+app.use(cors());
+
+
+const CLIENT_ID=process.env.CLIENT_ID;
+const CLIENT_SECRET=process.env.CLIENT_SECRET;
+const REDIRECT_URI=process.env.REDIRECT_URI;
+const REFRESH_TOKEN=process.env.REFRESH_TOKEN;
 
 const oAuth2Client = new google.auth.OAuth2(CLIENT_ID,CLIENT_SECRET,REDIRECT_URI)
 oAuth2Client.setCredentials({refresh_token:REFRESH_TOKEN})
@@ -68,12 +73,7 @@ async function sendMail(email,link){
 // sendMail().then(result=> console.log("emailsent...",result))
 // .catch(error =>console.log(error.message))
 
-const app = express();
-const PORT = process.env.PORT || 8500;
-const MONGO_URL = process.env.MONGO_URL;
-// mongodb+srv://vinuppriya:<password>@cluster0.xu3bs.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
-app.use(express.json());
-app.use(cors());
+
 
 export async function createConnection() {
   const client = new MongoClient(MONGO_URL);
@@ -191,11 +191,8 @@ app.get("/", (request, response) => {
 
 
 
-// app.use("/movies",movieRouter);
+
 
 app.use("/user",userRouter);
-// app.get("/question", (request, response) => {
-//   response.send("hai");
-// });
 
 app.listen(PORT, () => console.log("the server is started in", PORT));
