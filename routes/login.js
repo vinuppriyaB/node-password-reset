@@ -59,8 +59,8 @@ router
     const storedDbPassword=userFromDB.password
     const isPasswordMatch= await bcrypt.compare(password,storedDbPassword)
     if(isPasswordMatch){
-      const token=jwt.sign({id:userFromDB._id},process.env.SECRET_KEY)
-      response.send({message:"successful login",token:token});
+      // const token=jwt.sign({id:userFromDB._id},process.env.SECRET_KEY)
+      response.send({message:"successful login"});
     }
     else{
       response.status(401).send({message:"invalide credential"});

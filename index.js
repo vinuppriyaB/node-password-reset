@@ -4,6 +4,14 @@ import dotenv from "dotenv";
 import cors from "cors";
 import nodemailer from "nodemailer";
 import {google} from "googleapis";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { genPassword,
+    // createUser,
+    // checkAvailUser
+   } 
+   from "./helper.js";
+
 
 // import { movieRouter } from "./routes/movie.js";
 import { userRouter } from "./routes/login.js";
@@ -21,7 +29,7 @@ const REFRESH_TOKEN="1//04-PaGJciqykZCgYIARAAGAQSNwF-L9IrSg0qDdnl2hKRkmJ6kN4Wjg9
 const oAuth2Client = new google.auth.OAuth2(CLIENT_ID,CLIENT_SECRET,REDIRECT_URI)
 oAuth2Client.setCredentials({refresh_token:REFRESH_TOKEN})
 
-async function sendMail(email){
+async function sendMail(email,link){
     try{
         const accessToken=await oAuth2Client.getAccessToken();
         const transport=nodemailer.createTransport({
@@ -43,7 +51,7 @@ async function sendMail(email){
             to:email,
             subject:" gmail api",
             text:"heloo to it from gmailapi",
-            html:"<h1>hai ...its check from frontend</h1>"
+            html:`<h1>${link}</h1>`
         };
         const result = await transport.sendMail(mailOptions)
         return result;
@@ -86,13 +94,41 @@ async function checkAvailUser(email){
     return user;
 
 }
+async function checkAvailUserId(id){
+    const user = await client
+        .db("B27rwd")
+        .collection("loginform")
+        .findOne({"_id":id});
+
+    return user;
+
+}
+async function addTokenInDb(email,token){
+    const result = await client
+    .db("B27rwd")
+    .collection("loginform")
+    .updateOne({ email:email }, { $set: {token:token} });
+   return result;
+
+}
+let id=null;
+let token=null;
 app.post("/forget-password", async(request, response) => {
     const {email}=request.body;
     const isUserAvail=await checkAvailUser(email)
+     id=isUserAvail._id;
     
     if(isUserAvail)
     {
-        const result = await sendMail(email)
+        const secret=process.env.SECRET_KEY + isUserAvail.password;
+        const payload = {
+            email:email,
+            id:id
+        }
+         token= jwt.sign(payload,secret,{expiresIn:"15m"});
+         const addtoken= await addTokenInDb(email,token)
+        const link = `http://localhost:3001/reset-password/${id}/${token}`;
+        const result = await sendMail(email,link)
         response.send("user avail");
         
     }
@@ -101,6 +137,52 @@ app.post("/forget-password", async(request, response) => {
         
     }
     
+ });
+ app.get("/forget-password/id/token", async(request, response) => {
+     response.send({id:id,token:token})
+ });
+
+
+ app.get("/reset-password/:id/:token", async(request, response) => {
+    const {id,token}=request.params;
+    const isUserAvail=await checkAvailUserId(id)
+    
+    if(isUserAvail)
+    {
+        const secret=process.env.SECRET_KEY + isUserAvail.password;
+        try{
+            const payload= jwt.verify(token,secret);
+            response.send(payload)
+
+
+        }catch(error){
+            console.log(error.message)
+            response.send(error.message);
+        }
+        
+        
+    }
+    else {
+        response.status(400).send({message:"user not available"});
+        
+    }
+    
+ });
+
+ app.post("/reset-password/user", async(request, response) => {
+    //  const {id}=request.params;
+    const {email,newpassword,token}=request.body;
+    const hashPassword = await genPassword(newpassword);
+    const result = await client
+        .db("B27rwd")
+        .collection("loginform")
+        .updateOne({ token:token }, { $set: {password:hashPassword} });
+        
+        const result1 = await client
+        .db("B27rwd")
+        .collection("loginform")
+        .updateOne({ token:token }, { $set: {token:null }});
+        response.send(result1);
  });
  
 app.get("/", (request, response) => {
