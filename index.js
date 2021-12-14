@@ -127,7 +127,7 @@ app.post("/forget-password", async(request, response) => {
         }
          token= jwt.sign(payload,secret,{expiresIn:"15m"});
          const addtoken= await addTokenInDb(email,token)
-        const link = `http://localhost:3001/reset-password/${id}/${token}`;
+        const link = `https://distracted-saha-c5033b.netlify.app/reset-password/${id}/${token}`;
         const result = await sendMail(email,link)
         response.send("user avail");
         
