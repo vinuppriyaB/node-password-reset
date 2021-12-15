@@ -151,10 +151,11 @@ app.post("/forget-password", async(request, response) => {
                 async(err,decode)=>{
                     if(decode!==undefined){
                       const document= await client.db("B27rwd").collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
+                      console.log(document)
                         if(document)
                         {
                          
-                            response.redirect(`https://mystifying-jepsen-e61d38.netlify.app/reset-password/${token}`);
+                            response.redirect(`https://stoic-cray-4c696d.netlify.app/reset-password/${token}`);
 
                         }          
                     }else{
