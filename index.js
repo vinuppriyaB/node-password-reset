@@ -145,7 +145,7 @@ app.post("/forget-password", async(request, response) => {
     
     try{
             
-            let token=request.params.token
+            let token=request.params.token;
             jwt.verify(token,
                 process.env.SECRET_KEY,
                 async(err,decode)=>{
@@ -158,7 +158,7 @@ app.post("/forget-password", async(request, response) => {
 
                         }          
                     }else{
-                        response.status(401).json({message:"invalid token"});
+                        response.status(401).send({message:"invalid token"});
                     }
                 });
                 next();
