@@ -103,31 +103,28 @@ async function checkAvailUserId(id){
     return user;
 
 }
-async function addTokenInDb(email,token){
-    const result = await client
-    .db("B27rwd")
-    .collection("loginform")
-    .updateOne({ email:email }, { $set: {token:token} });
-   return result;
+// async function addTokenInDb(email,token){
+//     const result = await client
+//     .db("B27rwd")
+//     .collection("loginform")
+//     .updateOne({ email:email }, { $set: {token:token} });
+//    return result;
 
-}
-let id=null;
-let token=null;
+// }
+
+
 app.post("/forget-password", async(request, response) => {
     const {email}=request.body;
     const isUserAvail=await checkAvailUser(email)
-     id=isUserAvail._id;
-    
     if(isUserAvail)
     {
-        const secret=process.env.SECRET_KEY + isUserAvail.password;
+        const secret=process.env.SECRET_KEY ;
         const payload = {
-            email:email,
-           
+            email:email
         }
-         token= jwt.sign(payload,secret,{expiresIn:"15m"});
-         const addtoken= await addTokenInDb(email,token)
-        const link = `https://login-proces.herokuapp.com/reset-password/${id}/${token}`;
+        let token= jwt.sign(payload,secret,{expiresIn:"15m"});
+        //  const addtoken= await addTokenInDb(email,token)
+        const link = `http://localhost:8500/reset-password/${token}`;
         const result = await sendMail(email,link)
         response.send("user avail");
         
@@ -140,87 +137,51 @@ app.post("/forget-password", async(request, response) => {
  });
 
  
- app.get("/forget-password/id/token", async(request, response) => {
-     response.send({id:id,token:token})
- });
-
- app.get("/reset-password/:id/:token", async(request, response) => {
-    // const client = await mongoClient.connect(dbUrl);
-    // if(client){ 
-    //     try{
-    //         const db = client.db("B27rwd");
-    //         JWT.verify(req.params.token,
-    //             JWT_SECRET,
-    //             async(err,decode)=>{
-    //                 if(decode!==undefined){
-    //                     document=await db.collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
-    //                     if(document)
-    //                     {
-                         
-response.redirect("https://distracted-saha-c5033b.netlify.app");
-
-    //                     }          
-    //                 }else{
-    //                     res.status(401).json({message:"invalid token"});
-    //                 }
-    //             });
-            
-    //         client.close();
-    //     }
-    //     catch(error)
-    //     {
-    //         console.log(error);
-    //         client.close();
-    //     }
-    // }else{
-
-    //     res.sendStatus(500);
-    // }
-
- });
-    
-
-
-//  app.get("/reset-password/:id/:token", async(request, response) => {
-//     const {id,token}=request.params;
-//     // const isUserAvail=await checkAvailUserId(id)
-    
-    
-//         const secret=process.env.SECRET_KEY + isUserAvail.password;
-//         try{
-//             const payload= jwt.verify(token,secret);
-//             response.redirect("https://distracted-saha-c5033b.netlify.app")
-//             // response.send(payload)
-
-
-//         }catch(error){
-//             console.log(error.message)
-//             response.send(error.message);
-//         }
-        
-        
-    
-//     // else {
-//     //     response.status(400).send({message:"user not available"});
-        
-//     // }
-    
+//  app.get("/forget-password/id/token", async(request, response) => {
+//      response.send({id:id,token:token})
 //  });
+
+ app.get("/reset-password/:token", async(request, response) => {
+    
+    
+            const db = client.db("B27rwd");
+            token=request.params.token
+            jwt.verify(token,
+                process.env.SECRET_KEY,
+                async(err,decode)=>{
+                    if(decode!==undefined){
+                      const document=await db.collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
+                        if(document)
+                        {
+                         
+                            response.redirect(`http://localhost:3000/reset-password/${token}`);
+
+                        }          
+                    }else{
+                        request.status(401).json({message:"invalid token"});
+                    }
+                });
+
+ });
+    
+
+
+
 
  app.post("/reset-password/user", async(request, response) => {
     //  const {id}=request.params;
     const {email,newpassword,token}=request.body;
-    const hashPassword = await genPassword(newpassword);
+    const hashPassword = await genPassword(newpassword); 
     const result = await client
         .db("B27rwd")
         .collection("loginform")
-        .updateOne({ token:token }, { $set: {password:hashPassword} });
+        .updateOne({password:token }, { $set: {password:hashPassword} });
         
-        const result1 = await client
-        .db("B27rwd")
-        .collection("loginform")
-        .updateOne({ token:token }, { $set: {token:null }});
-        response.send(result1);
+        // const result1 = await client
+        // .db("B27rwd")
+        // .collection("loginform")
+        // .updateOne({ token:token }, { $set: {token:null }});
+        response.send(result);
  });
  
 app.get("/", (request, response) => {
