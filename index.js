@@ -124,7 +124,7 @@ app.post("/forget-password", async(request, response) => {
         }
         let token= jwt.sign(payload,secret,{expiresIn:"15m"});
         //  const addtoken= await addTokenInDb(email,token)
-        const link = `http://localhost:8500/reset-password/${token}`;
+        const link = `https://login-proces.herokuapp.com/reset-password/${token}`;
         const result = await sendMail(email,link)
         response.send("user avail");
         
@@ -154,7 +154,7 @@ app.post("/forget-password", async(request, response) => {
                         if(document)
                         {
                          
-                            response.redirect(`http://localhost:3000/reset-password/${token}`);
+                            response.redirect(`https://mystifying-jepsen-e61d38.netlify.app/reset-password/${token}`);
 
                         }          
                     }else{
