@@ -122,7 +122,7 @@ app.post("/forget-password", async(request, response) => {
         const payload = {
             email:email
         }
-        let token= jwt.sign(payload,secret,{expiresIn:"15m"});
+        let token= jwt.sign(payload,secret,{expiresIn:"1h"});
         //  const addtoken= await addTokenInDb(email,token)
         const link = `https://login-proces.herokuapp.com/reset-password/${token}`;
         const result = await sendMail(email,link)
@@ -141,16 +141,16 @@ app.post("/forget-password", async(request, response) => {
 //      response.send({id:id,token:token})
 //  });
 
- app.get("/reset-password/:token", async(request, response) => {
+ app.get("/reset-password/:token", async(request, response,next) => {
     
-    
-            const db = client.db("B27rwd");
+    try{
+            
             token=request.params.token
             jwt.verify(token,
                 process.env.SECRET_KEY,
                 async(err,decode)=>{
                     if(decode!==undefined){
-                      const document=await db.collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
+                      const document= await client.db("B27rwd").collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
                         if(document)
                         {
                          
@@ -158,10 +158,18 @@ app.post("/forget-password", async(request, response) => {
 
                         }          
                     }else{
-                        request.status(401).json({message:"invalid token"});
+                        response.status(401).json({message:"invalid token"});
                     }
                 });
+                next();
+            }
 
+            catch(error)
+                {
+                    console.log(error);
+                    
+                }
+                    
  });
     
 
