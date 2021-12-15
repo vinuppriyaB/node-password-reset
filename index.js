@@ -157,7 +157,7 @@ app.post("/forget-password", async(request, response) => {
     //                     if(document)
     //                     {
                          
-res.redirect("https://distracted-saha-c5033b.netlify.app");
+response.redirect("https://distracted-saha-c5033b.netlify.app");
 
     //                     }          
     //                 }else{
