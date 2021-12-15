@@ -146,35 +146,36 @@ app.post("/forget-password", async(request, response) => {
 
  app.get("/reset-password/:id/:token", async(request, response) => {
     // const client = await mongoClient.connect(dbUrl);
-    if(client){ 
-        try{
-            const db = client.db("B27rwd");
-            JWT.verify(req.params.token,
-                JWT_SECRET,
-                async(err,decode)=>{
-                    if(decode!==undefined){
-                        document=await db.collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
-                        if(document)
-                        {
+    // if(client){ 
+    //     try{
+    //         const db = client.db("B27rwd");
+    //         JWT.verify(req.params.token,
+    //             JWT_SECRET,
+    //             async(err,decode)=>{
+    //                 if(decode!==undefined){
+    //                     document=await db.collection("loginform").findOneAndUpdate({email:decode.email},{$set:{password:token}}); 
+    //                     if(document)
+    //                     {
                          
 res.redirect("https://distracted-saha-c5033b.netlify.app");
-                        }          
-                    }else{
-                        res.status(401).json({message:"invalid token"});
-                    }
-                });
-            
-            client.close();
-        }
-        catch(error)
-        {
-            console.log(error);
-            client.close();
-        }
-    }else{
 
-        res.sendStatus(500);
-    }
+    //                     }          
+    //                 }else{
+    //                     res.status(401).json({message:"invalid token"});
+    //                 }
+    //             });
+            
+    //         client.close();
+    //     }
+    //     catch(error)
+    //     {
+    //         console.log(error);
+    //         client.close();
+    //     }
+    // }else{
+
+    //     res.sendStatus(500);
+    // }
 
  });
     
