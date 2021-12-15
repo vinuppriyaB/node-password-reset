@@ -158,10 +158,10 @@ app.post("/forget-password", async(request, response) => {
 
                         }          
                     }else{
-                        response.status(401).send({message:"invalid token"});
+                        response.status(401).json({message:"invalid token"});
                     }
                 });
-                next();
+                
             }
 
             catch(error)
