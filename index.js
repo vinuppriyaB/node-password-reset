@@ -73,7 +73,7 @@ async function sendMail(email,link){
 // sendMail().then(result=> console.log("emailsent...",result))
 // .catch(error =>console.log(error.message))
 
-
+let currentEmail="";
 
 export async function createConnection() {
   const client = new MongoClient(MONGO_URL);
@@ -115,6 +115,7 @@ async function checkAvailUserId(id){
 
 app.post("/forget-password", async(request, response) => {
     const {email}=request.body;
+    currentEmail=email;
     const isUserAvail=await checkAvailUser(email)
     if(isUserAvail)
     {
@@ -122,7 +123,7 @@ app.post("/forget-password", async(request, response) => {
         const payload = {
             email:email
         }
-        let token= jwt.sign(payload,secret,{expiresIn:"1h"});
+        let token= jwt.sign(payload,secret,{expiresIn:"15m"});
         //  const addtoken= await addTokenInDb(email,token)
         const link = `https://login-proces.herokuapp.com/reset-password/${token}`;
         const result = await sendMail(email,link)
@@ -179,12 +180,12 @@ app.post("/forget-password", async(request, response) => {
 
  app.post("/reset-password/user", async(request, response) => {
     //  const {id}=request.params;
-    const {email,newpassword}=request.body;
+    const {newpassword}=request.body;
     const hashPassword = await genPassword(newpassword); 
     const result = await client
         .db("B27rwd")
         .collection("loginform")
-        .updateOne({email:email }, { $set: {password:hashPassword} });
+        .updateOne({email:currentEmail }, { $set: {password:hashPassword} });
         
         // const result1 = await client
         // .db("B27rwd")
