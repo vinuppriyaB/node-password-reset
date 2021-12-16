@@ -155,7 +155,7 @@ app.post("/forget-password", async(request, response) => {
                         if(document)
                         {
                          
-                            response.redirect("https://focused-noether-3750c7.netlify.app/reset-password");
+                            response.redirect("https://wonderful-roentgen-5ccedf.netlify.app/resetpassword");
 
                         }          
                     }else{
