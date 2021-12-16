@@ -155,7 +155,7 @@ app.post("/forget-password", async(request, response) => {
                         if(document)
                         {
                          
-                            response.redirect("https://stoic-cray-4c696d.netlify.app/reset-password/"+token);
+                            response.redirect("https://focused-noether-3750c7.netlify.app/reset-password");
 
                         }          
                     }else{
@@ -179,12 +179,12 @@ app.post("/forget-password", async(request, response) => {
 
  app.post("/reset-password/user", async(request, response) => {
     //  const {id}=request.params;
-    const {email,newpassword,token}=request.body;
+    const {email,newpassword}=request.body;
     const hashPassword = await genPassword(newpassword); 
     const result = await client
         .db("B27rwd")
         .collection("loginform")
-        .updateOne({password:token }, { $set: {password:hashPassword} });
+        .updateOne({email:email }, { $set: {password:hashPassword} });
         
         // const result1 = await client
         // .db("B27rwd")
