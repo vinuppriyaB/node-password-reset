@@ -24,11 +24,11 @@ router
       response.status(400).send({message:"username already exist"});
       return;
     }
-    if(password.length<8)
-    {
-      response.status(400).send({message:"password is must be longer"});
-      return;
-    }
+    // if(password.length<8)
+    // {
+    //   response.status(400).send({message:"password is must be longer"});
+    //   return;
+    // }
     // if(!/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!#%&]).{8,}$/g.test(password))
     // {
     //   response.status(400).send({message:"password pattern doesn't match"});
