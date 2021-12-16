@@ -155,7 +155,7 @@ app.post("/forget-password", async(request, response) => {
                         if(document)
                         {
                          
-                            response.redirect(`https://stoic-cray-4c696d.netlify.app`);
+                            response.redirect(`https://stoic-cray-4c696d.netlify.app/reset-password`);
 
                         }          
                     }else{
