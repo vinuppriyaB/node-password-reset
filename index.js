@@ -207,7 +207,7 @@ app.post("/user/signup", async(request, response) => {
     const storedDbPassword=userFromDB.password
     const isPasswordMatch= await bcrypt.compare(password,storedDbPassword)
     if(isPasswordMatch){
-      // const token=jwt.sign({id:userFromDB._id},process.env.SECRET_KEY)
+     
       response.send({message:"successful login"});
     }
     else{
@@ -227,7 +227,7 @@ app.post("/forget-password", async(request, response) => {
             email:email
         }
         let token= jwt.sign(payload,secret,{expiresIn:"15m"});
-        //  const addtoken= await addTokenInDb(email,token)
+      
         const link = `https://login-proces.herokuapp.com/reset-password/${token}`;
         const result = await sendMail(email,link)
         response.send("user avail");
@@ -284,16 +284,22 @@ app.post("/forget-password", async(request, response) => {
  app.post("/reset-password/user", async(request, response) => {
     //  const {id}=request.params;
     const {newpassword}=request.body;
+    if(newpassword.length<8)
+    {
+      response.status(400).send({message:"password is must be longer"});
+      return;
+    }
+    if(!/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!#%&]).{8,}$/g.test(newpassword))
+    {
+      response.status(400).send({message:"password pattern doesn't match"});
+      return;
+    }
     const hashPassword = await genPassword(newpassword); 
     const result = await client
         .db("B27rwd")
         .collection("loginform")
         .updateOne({email:currentEmail }, { $set: {password:hashPassword} });
         
-        // const result1 = await client
-        // .db("B27rwd")
-        // .collection("loginform")
-        // .updateOne({ token:token }, { $set: {token:null }});
         response.send(result);
  });
  
