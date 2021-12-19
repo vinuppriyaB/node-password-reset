@@ -10,13 +10,13 @@ async function genPassword(password)
   const hashedPassword= await bcrypt.hash(password,salt);
     return hashedPassword;
 }
-async function createUser(username,email,password) {
+async function createUser(firstName,lastName,email,password) {
    
 //    console.log(username,password)
     const user = await client
         .db("B27rwd")
         .collection("loginform")
-        .insertMany([{username:username,email:email,password:password}]);
+        .insertMany([{firstName:firstName,lastName:lastName,email:email,password:password,activate:"none"}]);
     console.log(user);
     return user;
 }

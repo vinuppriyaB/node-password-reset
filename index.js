@@ -7,13 +7,20 @@ import {google} from "googleapis";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { genPassword,
-    // createUser,
-    // checkAvailUser
+   createUser,
+   checkAvailUser
+    
    } 
    from "./helper.js";
+ import bodyParser from "body-parser";
+ 
+ // import {client} from "../index.js";
+ 
+ 
 
 
-// import { movieRouter } from "./routes/movie.js";
+
+import { urlshortenRouter } from "./routes/urlshorten.js";
 import { userRouter } from "./routes/login.js";
 // import { gmail } from "googleapis/build/src/apis/gmail";
 // import { gmail } from "googleapis/build/src/apis/gmail";
@@ -24,7 +31,7 @@ const MONGO_URL = process.env.MONGO_URL;
 // mongodb+srv://vinuppriya:<password>@cluster0.xu3bs.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 app.use(express.json());
 app.use(cors());
-
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const CLIENT_ID=process.env.CLIENT_ID;
 const CLIENT_SECRET=process.env.CLIENT_SECRET;
@@ -85,24 +92,24 @@ export async function createConnection() {
 
 export const client = await createConnection();
 
-async function checkAvailUser(email){
-    const user = await client
-        .db("B27rwd")
-        .collection("loginform")
-        .findOne({"email":email});
+// async function checkAvailUser(email){
+//     const user = await client
+//         .db("B27rwd")
+//         .collection("loginform")
+//         .findOne({"email":email});
     
-    return user;
+//     return user;
 
-}
-async function checkAvailUserId(id){
-    const user = await client
-        .db("B27rwd")
-        .collection("loginform")
-        .findOne({"_id":id});
+// }
+// async function checkAvailUserId(id){
+//     const user = await client
+//         .db("B27rwd")
+//         .collection("loginform")
+//         .findOne({"_id":id});
 
-    return user;
+//     return user;
 
-}
+// }
 // async function addTokenInDb(email,token){
 //     const result = await client
 //     .db("B27rwd")
@@ -113,6 +120,102 @@ async function checkAvailUserId(id){
 // }
 
 
+app.post("/user/signup", async(request, response) => {
+    const {firstName,lastName,password,email}=request.body;
+    
+    const isUserExist= await checkAvailUser(email);
+    
+    if(isUserExist)
+    {
+      response.status(400).send({message:"username already exist"});
+      return;
+    }
+    if(password.length<8)
+    {
+      response.status(400).send({message:"password is must be longer"});
+      return;
+    }
+    if(!/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!#%&]).{8,}$/g.test(password))
+    {
+      response.status(400).send({message:"password pattern doesn't match"});
+      return;
+    }
+   
+    const hashPassword = await genPassword(password);
+    
+    const userCreate = await createUser(firstName,lastName,email,hashPassword)
+
+    const secret=process.env.SECRET_KEY ;
+        const payload = {
+            email:email
+        }
+        let token= jwt.sign(payload,secret,{expiresIn:"15m"});
+        //  const addtoken= await addTokenInDb(email,token)
+        const link = `https://login-proces.herokuapp.com/user/activatelink/${token}`;
+        const result = await sendMail(email,link)
+        response.send("user avail");
+    
+   
+   
+  });
+  app.get("/user/activatelink/:token", async(request, response,next) => {
+    
+    try{
+            
+            let token=request.params.token;
+            jwt.verify(token,
+                process.env.SECRET_KEY,
+                async(err,decode)=>{
+                    if(decode!==undefined){
+                      const document= await client.db("B27rwd").collection("loginform").findOneAndUpdate({email:decode.email},{$set:{activate:"activate"}}); 
+                       response.json({message:"Account activated"})
+                    }else{
+                        response.status(401).json({message:"invalid token"});
+                    }
+                });
+                
+            }
+
+            catch(error)
+                {
+                    console.log(error);
+                    
+                }
+                    
+ });
+    
+  
+
+
+
+  app.post( "/user/login",async(request, response) => {
+
+    const {email,password}=request.body;
+    
+    const userFromDB= await checkAvailUser(email);
+    
+    if(!userFromDB)
+    {
+      response.status(401).send({message:"invalide credential"});
+      return;
+    }
+    if(userFromDB.activate=="none")
+    {
+      response.status(401).send({message:"accountnotactivated"});
+      return;
+    }
+    const storedDbPassword=userFromDB.password
+    const isPasswordMatch= await bcrypt.compare(password,storedDbPassword)
+    if(isPasswordMatch){
+      // const token=jwt.sign({id:userFromDB._id},process.env.SECRET_KEY)
+      response.send({message:"successful login"});
+    }
+    else{
+      response.status(401).send({message:"invalide credential"});
+    }
+    
+  
+  });
 app.post("/forget-password", async(request, response) => {
     const {email}=request.body;
     currentEmail=email;
@@ -202,6 +305,7 @@ app.get("/", (request, response) => {
 
 
 
-app.use("/user",userRouter);
+// app.use("/user",userRouter);
+app.use("/urlshorten",urlshortenRouter);
 
 app.listen(PORT, () => console.log("the server is started in", PORT));
